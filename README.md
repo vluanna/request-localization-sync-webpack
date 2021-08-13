@@ -14,7 +14,7 @@ npm install --save-dev request-localization-sync-webpack
 In config file:
 
 ``` javascript
-const RequestLocalizationSync = require('request-permission-sync-webpack');
+const RequestLocalizationSync = require('request-localization-sync-webpack');
 // ...
   module: {
     plugins: [
