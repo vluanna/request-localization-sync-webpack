@@ -1,5 +1,5 @@
 {
-  "name": "request-permission-sync-webpack",
+  "name": "request-localization-sync-webpack",
   "version": "0.1.0",
   "description": "Webpack plugin that allow you to sync localizations in code to api service",
   "main": "index.js",
