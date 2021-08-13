@@ -90,7 +90,7 @@ module.exports = class RequestLocalizationSync {
                     const resp = await axios(requestOptions);
                     const version = get(resp, 'data.responseInfo.version') || 'unknown'
                     if (get(resp, 'data.data')) {
-                        console.log(`${pluginName} Translations import success | Application Name: "${portalCode}"\n - Version ${version}`)
+                        console.log(`${pluginName} Translations import success | Application Name: "${portalCode}" | Lang: "${languageCode}"\n - Version ${version}`)
                     } else {
                         console.log(`Cannot sync Translations: ${JSON.stringify(get(resp, 'data.errors') || get(resp, 'data'))}\nVersion ${version}`);
                     }
