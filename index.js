@@ -75,13 +75,13 @@ module.exports = class RequestLocalizationSync {
         compiler.hooks.done.tap(pluginName, async (stats) => {
 
 
-            const sendRequest = async (data, applicationName, languageCode = 'en') => {
+            const sendRequest = async (data, applicationName, languageCode = 'en', isFullUpdate = true) => {
                 try {
                     const applicationCode = this.options.authApplicationCode || process.env.AUTH_APPLICATION_CODE
                     const portalCode = applicationName || this.options.applicationName || process.env.APPLICATION_NAME
                     const dataOptions = {
                         responseInfo: { languageCode },
-                        applicationCode, portalCode,
+                        applicationCode, portalCode, isFullUpdate,
                     };
                     const requestOptions = Object.assign(this.options.requestOptions, {
                         url: this.options.requestOptions.url || process.env.LOCALIZATION_SYNC_URL,
@@ -122,8 +122,8 @@ module.exports = class RequestLocalizationSync {
                     const commonData = parseKeyToObject(commonKeys, data)
 
                     await Promise.all([
-                        sendRequest(localResource, applicationName, languageCode),
-                        sendRequest(commonData, this.options.defaultNameSpace, languageCode)
+                        sendRequest(localResource, applicationName, languageCode, true),
+                        sendRequest(commonData, this.options.defaultNameSpace, languageCode, false)
                     ])
                 }
             }
