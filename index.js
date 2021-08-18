@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const { get, set, difference, merge } = require('lodash')
 const axios = require("axios");
+const { stringify } = require("querystring");
 
 const pluginName = "RequestLocalizationSync";
 
@@ -41,7 +42,7 @@ const isDisabled = (compilerOptions) => {
 module.exports = class RequestLocalizationSync {
 
     static defaultOptions = {
-        filename: "translations.json",
+        filename: null, // "translations.json",
         authApplicationCode: process.env.AUTH_APPLICATION_CODE,
         applicationName: process.env.APPLICATION_NAME,
         defaultNameSpace: 'common',
@@ -80,7 +81,7 @@ module.exports = class RequestLocalizationSync {
                     const applicationCode = this.options.authApplicationCode || process.env.AUTH_APPLICATION_CODE
                     const portalCode = applicationName || this.options.applicationName || process.env.APPLICATION_NAME
                     const dataOptions = {
-                        responseInfo: { languageCode },
+                        requestInfo: { languageCode },
                         applicationCode, portalCode, isFullUpdate,
                     };
                     const requestOptions = Object.assign(this.options.requestOptions, {
@@ -95,20 +96,25 @@ module.exports = class RequestLocalizationSync {
                         console.log(`Cannot sync Translations: ${JSON.stringify(get(resp, 'data.errors') || get(resp, 'data'))}\nVersion ${version}`);
                     }
                 } catch (error) {
-                    console.log('ERROR', pluginName, error)
+                    console.log('ERROR', pluginName, error.response || error)
                 }
             }
 
             const applicationName = this.options.applicationName || process.env.APPLICATION_NAME
-            const outputPath = path.join(compiler.outputPath, this.options.filename)
+            const isSkipExtract = !this.options.filename;
+            const outputPath = !isSkipExtract && path.join(compiler.outputPath, this.options.filename)
             const localResources = this.options.localResources;
 
             let resources = {}
-            try {
-                resources = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-            } catch (error) {
-                console.log('ERROR', pluginName, error)
+            if (!isSkipExtract) {
+                try {
+                    resources = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+                } catch (error) {
+                    console.log('ERROR', pluginName, error)
+                }
             }
+
+            const isHasCommon = !!Object.keys(resources).length
 
             for (let languageCode of this.options.languages) {
                 const localResource = localResources[languageCode];
@@ -121,10 +127,11 @@ module.exports = class RequestLocalizationSync {
 
                     const commonData = parseKeyToObject(commonKeys, data)
 
-                    await Promise.all([
-                        sendRequest(localResource, applicationName, languageCode, true),
-                        sendRequest(commonData, this.options.defaultNameSpace, languageCode, false)
-                    ])
+                    const runPromises = [sendRequest(localResource, applicationName, languageCode, true)]
+                    if (isHasCommon && applicationName !== this.options.defaultNameSpace) {
+                        runPromises.push(sendRequest(commonData, this.options.defaultNameSpace, languageCode, false))
+                    }
+                    await Promise.all(runPromises)
                 }
             }
         })
