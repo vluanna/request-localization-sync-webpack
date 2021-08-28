@@ -30,6 +30,10 @@ const parseKeyToObject = (keys = [], object = {}) => {
     }, {})
 }
 
+const setCompilerHook = (compiler, pluginName, callback) => {
+    return compiler.hooks.done.tap(pluginName, callback)
+}
+
 const requestBodyParser = (localeDatas, options = {}) => ({
     ...options,
     data: localeDatas
@@ -54,6 +58,7 @@ module.exports = class RequestLocalizationSync {
             headers: { 'Content-Type': 'application/json-patch+json', 'Accept': 'application/json' },
             bodyParser: requestBodyParser
         },
+        setCompilerHook,
         isDisabled,
     };
 
@@ -73,7 +78,7 @@ module.exports = class RequestLocalizationSync {
 
 
 
-        compiler.hooks.done.tap(pluginName, async (stats) => {
+        this.options.setCompilerHook(compiler, pluginName, async () => {
 
 
             const sendRequest = async (data, applicationName, languageCode = 'en', isFullUpdate = true) => {
