@@ -24,7 +24,8 @@ const RequestLocalizationSync = require('request-localization-sync-webpack');
         applicationName: 'app1', // default take the value from process.env.APPLICATION_NAME
         defaultNameSpace: 'translations',
         localResources: {}, // all locales resources object in you app: exp: { en: {...}, vi: {...} }
-        languages: ['en', 'vi']
+        languages: ['en', 'vi'],
+        setCompilerHook: (compiler, pluginName, callback) => compiler.hooks.done.tap(pluginName, callback),
         // Axios options...
         requestOptions: {
           url: 'http://some.url/to/post/your/translations',
